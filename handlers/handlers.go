@@ -1,16 +1,16 @@
 package handlers
 
 import (
+	// "context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"subscribly/auth"
 	"subscribly/customerrors"
 	"subscribly/middleware"
-	"subscribly/models"
+	// "subscribly/models"
 	"subscribly/services"
 	"subscribly/utils"
-	"subscribly/validations"
 )
 
 func CheckHealth(w http.ResponseWriter, r *http.Request) {
@@ -23,26 +23,12 @@ func CheckHealth(w http.ResponseWriter, r *http.Request) {
 
 func UserSignUp(w http.ResponseWriter, r *http.Request) {
 
-	var userSentDetails models.UserLoginCreds
-
-	err := json.NewDecoder(r.Body).Decode(&userSentDetails)
-	if err != nil {
-		fmt.Printf("error occured while decoding request : %v\n", err)
-
-		w.Header().Set("Content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		// utils.ErrorWriter(w, err)
-		return
-	}
-
-	validationErrs, ok := validations.SignUpValidator(userSentDetails)
+	userSentDetails, ok := middleware.GetSignUpDetailsFromctx(r.Context())
 	if !ok {
-		w.Header().Set("Content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(validationErrs)
+		fmt.Println("error getting details form context")
+		utils.ErrorWriter(w, customerrors.ErrGettingDetailsFromContext, http.StatusBadRequest)
 		return
-	}
-
+	}	
 
 	response, err := services.UserSignUpService(userSentDetails)
 	if err != nil {
@@ -55,16 +41,12 @@ func UserSignUp(w http.ResponseWriter, r *http.Request) {
 
 func UserLogin(w http.ResponseWriter, r *http.Request) {
 
-	var userSentDetails models.UserLoginCreds
-
-	json.NewDecoder(r.Body).Decode(&userSentDetails)
-
-	validationErrs, ok := validations.LoginValidator(userSentDetails)
+	userSentDetails, ok := middleware.GetLoginDetailsFromctx(r.Context())
 	if !ok {
-		w.Header().Set("Content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(validationErrs)
+		fmt.Println("error getting details form context")
+		utils.ErrorWriter(w, customerrors.ErrGettingDetailsFromContext, http.StatusBadRequest)
 		return
+
 	}
 
 	userId,role,  err := services.UserLoginService(userSentDetails)
@@ -122,16 +104,9 @@ func UserLogOut(w http.ResponseWriter, r *http.Request) {
 
 func CreateNewOrg(w http.ResponseWriter, r *http.Request) {
 
-	var userSentDetails models.Org
-
-	json.NewDecoder(r.Body).Decode(&userSentDetails)
-
-	validationErrs, ok := validations.NewOrgValidator(userSentDetails)
-
+	userSentDetails, ok := middleware.GetNewOrgDetailsFromCtx(r.Context())
 	if !ok {
-		w.Header().Set("Content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(validationErrs)
+		utils.ErrorWriter(w, customerrors.ErrGettingDetailsFromContext, http.StatusBadRequest)
 		return
 	}
 
@@ -262,19 +237,16 @@ func GetAllMembersInOrg(w http.ResponseWriter, r *http.Request) {
 
 func UpgradePlan(w http.ResponseWriter, r *http.Request) {
 
-	planName := r.PathValue("planName")
-
-	validationErrs, ok := validations.UpgradePlanValidator(planName)
-	if !ok {
-		w.Header().Set("Content-type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(validationErrs)
-		return
-	}
 	claims, ok := middleware.GetClaimsFromContext(r.Context())
 
 	if !ok {
 		utils.ErrorWriter(w, customerrors.ErrGettingClaims, http.StatusBadRequest)
+		return
+	}
+
+	planName, ok := middleware.GetNewPlanFromCtx(r.Context())
+	if !ok {
+		utils.ErrorWriter(w, customerrors.ErrGettingDetailsFromContext, http.StatusBadRequest)
 		return
 	}
 

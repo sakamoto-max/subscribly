@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func UserSignUpService(Credentials models.UserLoginCreds) (models.UserDetails, error) {
+func UserSignUpService(Credentials *models.UserLoginCreds) (models.UserDetails, error) {
 
 	var response models.UserDetails
 	Credentials.Email = strings.ToLower(Credentials.Email)
@@ -44,10 +44,9 @@ func UserSignUpService(Credentials models.UserLoginCreds) (models.UserDetails, e
 	}
 
 	return response, nil
-
 }
 
-func UserLoginService(Credential models.UserLoginCreds) (int, string, error) {
+func UserLoginService(Credential *models.UserLoginCreds) (int, string, error) {
 
 	var userId int
 	var role string
@@ -86,7 +85,7 @@ func UserLoginService(Credential models.UserLoginCreds) (int, string, error) {
 	return userId, role, nil
 }
 
-func CreateNewOrgService(orgName models.Org) (models.OrgWithPlans, error) {
+func CreateNewOrgService(orgName *models.Org) (models.OrgWithPlans, error) {
 
 	response, err := repository.CreateNewOrgInDB(orgName.OrgName, orgName.OwnerId)
 	if err != nil {

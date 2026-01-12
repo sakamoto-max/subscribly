@@ -17,6 +17,7 @@ var (
 	ErrCookieNotPresent = errors.New("cookie is not present")
 	ErrGettingPage = errors.New("error getting page number")
 	ErrUserAlreadySignedUp = errors.New("user already exists")
+	ErrGettingDetailsFromContext = errors.New("error getting details from context")
 
 
 	// internal server errors

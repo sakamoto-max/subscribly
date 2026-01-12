@@ -44,3 +44,9 @@ func ResponseWriter(w http.ResponseWriter, response any, successCode int) {
 	w.WriteHeader(successCode)
 	json.NewEncoder(w).Encode(response)
 }
+
+func ValidationErrWriter(w http.ResponseWriter, response any) {
+	w.Header().Set("Content-type", "application/json")
+	w.WriteHeader(http.StatusBadRequest)
+	json.NewEncoder(w).Encode(response)
+}

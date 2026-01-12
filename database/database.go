@@ -11,8 +11,7 @@ const DataBaseUrl string = "postgresql://postgres:root@localhost:5432/subscribly
 var DBConn *pgxpool.Pool
 
 func makeDBPool() (*pgxpool.Pool ,error) {
-	pool, err := pgxpool.New(context.Background(), DataBaseUrl)
-
+	pool, err := pgxpool.New(context.TODO(), DataBaseUrl)
 	if err != nil {
 		return pool, err
 	}
@@ -27,3 +26,8 @@ func InitializePool() {
 
 	DBConn = pool
 }
+
+func CloseDBPool(pool *pgxpool.Pool) {
+	pool.Close()
+}
+
