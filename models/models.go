@@ -81,4 +81,14 @@ type UsesLeft struct {
 type PageLimit struct{
 	PageNumber int `json:"page"`
 	Limit int `json:"limit"`
+	Search string `json:"search"`
+}
+
+type Subscriptions struct {
+	ID int `json:"id"`
+	OrgID int `json:"org_id"`
+	PlanName string `json:"Plan_name"`
+	PurchasedAt time.Time `json:"purchased_at"`
+	TotalUses int `json:"total_uses"`
+	UsesLeft int `json:"uses_left"`
 }

@@ -58,7 +58,7 @@ func UserLoginService(Credential *models.UserLoginCreds) (int, string, error) {
 		return userId, role, err
 	}
 
-	if !exists{
+	if !exists {
 		return userId, role, customerrors.ErrNotSignedUp
 	}
 
@@ -333,4 +333,69 @@ func GetAllUsersService(page int, limit int) ([]models.Members, error) {
 
 	return allUsers, nil
 
+}
+
+func GetAllSubscriptionsService() ([]models.Subscriptions, error) {
+
+	var allSubs []models.Subscriptions
+	rows, err := repository.GetSubscriptionsFromDb()
+	if err != nil {
+		return allSubs, err
+	}
+
+	defer rows.Close()
+
+	var id int
+	var orgId int
+	var planName string
+	var purchasedAt time.Time
+	var totalUses int
+	var usesLeft int
+
+	for rows.Next() {
+
+		err := rows.Scan(&id, &orgId, &planName, &purchasedAt, &totalUses, &usesLeft)
+		if err != nil {
+			//ret
+			return allSubs, err
+		}
+
+		a := models.Subscriptions{ID: id, OrgID: orgId, PlanName: planName, PurchasedAt: purchasedAt, TotalUses: totalUses, UsesLeft: usesLeft}
+
+		allSubs = append(allSubs, a)
+	}
+
+	return allSubs, nil
+}
+func GetAllSubscriptionsServiceWithFilter(search string) ([]models.Subscriptions, error) {
+
+	var allSubs []models.Subscriptions
+	rows, err := repository.GetSubscriptionsFromDbWithFilter(search)
+	if err != nil {
+		return allSubs, err
+	}
+
+	defer rows.Close()
+
+	var id int
+	var orgId int
+	var planName string
+	var purchasedAt time.Time
+	var totalUses int
+	var usesLeft int
+
+	for rows.Next() {
+
+		err := rows.Scan(&id, &orgId, &planName, &purchasedAt, &totalUses, &usesLeft)
+		if err != nil {
+			//ret
+			return allSubs, err
+		}
+
+		a := models.Subscriptions{ID: id, OrgID: orgId, PlanName: planName, PurchasedAt: purchasedAt, TotalUses: totalUses, UsesLeft: usesLeft}
+
+		allSubs = append(allSubs, a)
+	}
+
+	return allSubs, nil
 }

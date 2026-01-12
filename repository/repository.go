@@ -516,3 +516,31 @@ func GetAllUsers(limit int, offSet int) (pgx.Rows, error) {
 
 	return rows, nil
 }
+
+func GetSubscriptionsFromDb() (pgx.Rows, error) {
+	rows, err := database.DBConn.Query(context.TODO(), `
+		SELECT SUBSCRIPTIONS.ID, ORG_ID, PLAN_NAME, PURCHASED_AT, SUBSCRIPTIONS.TOTAL_USES, NO_OF_TIMES_USED FROM SUBSCRIPTIONS
+		INNER JOIN PLAN
+		ON SUBSCRIPTIONS.PLAN_ID = PLAN.ID
+	`)
+
+	if err != nil {
+		return rows, err
+	}
+
+	return rows, nil
+}
+func GetSubscriptionsFromDbWithFilter(search string) (pgx.Rows, error) {
+	rows, err := database.DBConn.Query(context.TODO(), `
+		SELECT SUBSCRIPTIONS.ID, ORG_ID, PLAN_NAME, PURCHASED_AT, SUBSCRIPTIONS.TOTAL_USES, NO_OF_TIMES_USED FROM SUBSCRIPTIONS
+		INNER JOIN PLAN
+		ON SUBSCRIPTIONS.PLAN_ID = PLAN.ID
+		WHERE PLAN_NAME = $1
+	`, search)
+
+	if err != nil {
+		return rows, err
+	}
+
+	return rows, nil
+}

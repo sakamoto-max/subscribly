@@ -3,8 +3,6 @@ package middleware
 import (
 	"context"
 	"encoding/json"
-
-	// "fmt"
 	"net/http"
 	"subscribly/models"
 	"subscribly/utils"

@@ -318,3 +318,29 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	utils.ResponseWriter(w, repsonse, http.StatusOK)
 }
 
+func GetAllSubscriptions(w http.ResponseWriter, r *http.Request) {
+
+	search, ok := middleware.GetSearchFromCts(r.Context())
+	if !ok {
+		//
+	}
+
+	fmt.Println(search)
+
+	if search == "" {
+		response, err := services.GetAllSubscriptionsService()
+		if err != nil{
+			utils.ErrorWriter(w, err, http.StatusBadRequest)
+			return
+		}
+		utils.ResponseWriter(w, response, http.StatusOK)
+	}else {
+		response, err := services.GetAllSubscriptionsServiceWithFilter(search)
+		if err != nil{
+			utils.ErrorWriter(w, err, http.StatusBadRequest)
+			return	
+		}
+		utils.ResponseWriter(w, response, http.StatusOK)
+
+	}
+}

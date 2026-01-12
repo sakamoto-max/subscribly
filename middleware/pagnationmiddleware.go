@@ -8,6 +8,7 @@ import (
 )
 
 var PageKey ContextKey = "page"
+var SearchKey string = "search"
 
 func Pagnation(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +38,7 @@ func Pagnation(next http.Handler) http.Handler {
 
 		pageAndLimit.PageNumber = Page
 		pageAndLimit.Limit = Limit
-		
+
 		ctx := context.WithValue(r.Context(), PageKey, pageAndLimit)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -46,9 +47,35 @@ func Pagnation(next http.Handler) http.Handler {
 }
 
 
+func SearchPagnation(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		var includeSearch bool
+		search := r.URL.Query().Get("search")
+
+		if search != "" {
+			includeSearch = true
+		}
+
+		if includeSearch{
+			ctx := context.WithValue(r.Context(), SearchKey, search)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		}else {
+			ctx := context.WithValue(r.Context(), SearchKey, "")
+			next.ServeHTTP(w, r.WithContext(ctx))
+		}
+	})
+}
+
 func GetPageAndLimitFromCtx(ctx context.Context) (*models.PageLimit, bool) {
 	page, ok := ctx.Value(PageKey).(*models.PageLimit)
 
 	return page, ok
 
+}
+
+func GetSearchFromCts(ctx context.Context) (string, bool) {
+	search, ok := ctx.Value(SearchKey).(string)
+
+	return search, ok
 }
