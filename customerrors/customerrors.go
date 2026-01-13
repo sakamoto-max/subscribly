@@ -42,6 +42,10 @@ var (
 
 	ErrAlreadyJoinedOrg = errors.New("you have already joined an org")
 
+
+	ErrCreatingATrnx = errors.New("error creating a transaction")
+	ErrCommitingTrnx = errors.New("error commiting the transaction")
+
 	ErrNotLoggedIn = MyErrors{Message: "please login first"}
 	ErrDummyMyError = MyErrors{Message: "this is a dummy error"}
 )

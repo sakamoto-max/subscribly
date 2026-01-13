@@ -2,20 +2,30 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"subscribly/customerrors"
 	"subscribly/database"
 	"subscribly/models"
+
 	"github.com/jackc/pgx/v5"
 )
+
 
 func UserSignUpDB(C *models.UserLoginCreds) (models.UserDetails, error) {
 
 	var D models.UserDetails
 
-	trnx, err := database.DBConn.Begin(context.TODO())
+	roleId, err := getRoleId(C.Role)
 	if err != nil {
 		return D, err
 	}
+
+	trnx, err := database.DBConn.Begin(context.TODO())
+	if err != nil {
+		return D, customerrors.ErrCreatingATrnx
+	}
+
+	defer trnx.Rollback(context.TODO())
 
 	err = trnx.QueryRow(context.TODO(), `
 		INSERT INTO USERS(NAME, EMAIL, HASHED_PASSWORD, CREATED_AT, UPDATED_AT, JOINED_ORG)
@@ -23,12 +33,8 @@ func UserSignUpDB(C *models.UserLoginCreds) (models.UserDetails, error) {
 		RETURNING ID, NAME, EMAIL, CREATED_AT, UPDATED_AT
 	`, C.Name, C.Email, C.Password).Scan(&D.Id, &D.Name, &D.Email, &D.CreatedAt, &D.UpdatedAt)
 	if err != nil {
-		return D, err
-	}
-
-	roleId, err := getRoleId(C.Role)
-	if err != nil {
-		return D, err
+		e := fmt.Errorf("error inserting into users : %w", err)
+		return D, e
 	}
 
 	_, err = trnx.Exec(context.TODO(), `
@@ -41,7 +47,7 @@ func UserSignUpDB(C *models.UserLoginCreds) (models.UserDetails, error) {
 
 	err = trnx.Commit(context.TODO())
 	if err != nil {
-		return D, err
+		return D, customerrors.ErrCommitingTrnx
 	}
 
 	return D, nil
@@ -125,12 +131,15 @@ func CreateNewOrgInDB(orgName string, userId int) (models.OrgWithPlans, error) {
 		return newOrg, err
 	}
 
+
 	newOrg.PlanName = "free"
 
 	trnx, err := database.DBConn.Begin(context.TODO())
 	if err != nil {
 		return newOrg, err
 	}
+
+	defer trnx.Rollback(context.TODO())
 
 	err = trnx.QueryRow(context.TODO(), `
 		INSERT INTO ORGS(ORG_NAME, OWNER_ID, CREATED_AT)
@@ -543,4 +552,18 @@ func GetSubscriptionsFromDbWithFilter(search string) (pgx.Rows, error) {
 	}
 
 	return rows, nil
+}
+
+func UpdateAfter5minutes() (error) {
+	_, err := database.DBConn.Exec(context.TODO(), `
+		UPDATE TABLE GOROUTINE
+		SET NUMBERS = NUMBERS + 15,
+		    TIMES = TIMES + 1	
+	`)
+
+	if err != nil{
+		return err
+	}
+
+	return nil
 }

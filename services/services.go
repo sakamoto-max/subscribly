@@ -38,6 +38,7 @@ func UserSignUpService(Credentials *models.UserLoginCreds) (models.UserDetails, 
 	}
 
 	response, err = repository.UserSignUpDB(Credentials)
+	
 	response.Role = Credentials.Role
 	if err != nil {
 		return response, err
